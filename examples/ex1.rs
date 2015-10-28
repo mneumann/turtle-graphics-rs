@@ -1,10 +1,10 @@
 extern crate turtle;
 
 use std::fs::File;
-use turtle::{TurtleRecorder, Turtle};
+use turtle::{Canvas, Turtle};
 
 fn main() {
-    let mut t = TurtleRecorder::new();
+    let mut t = Canvas::new();
     t.pendown();
     t.forward(100.0);
     t.right(90.0);
@@ -16,5 +16,5 @@ fn main() {
     t.forward(100.0);
     t.right(90.0);
     t.forward(100.0);
-    t.save_as_svg(&mut File::create("test.svg").unwrap()).unwrap();
+    t.save_svg(&mut File::create("test.svg").unwrap()).unwrap();
 }

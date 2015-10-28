@@ -77,7 +77,7 @@ pub trait Turtle {
 }
 
 #[derive(Clone)]
-pub struct TurtleState {
+struct TurtleState {
     pos: Position,
     angle: Degree,
     pendown: bool,
@@ -93,14 +93,14 @@ impl TurtleState {
     }
 }
 
-pub struct TurtleRecorder {
+pub struct Canvas {
     states: Vec<TurtleState>,
     paths: Vec<Vec<Position>>,
 }
 
-impl TurtleRecorder {
-    pub fn new() -> TurtleRecorder {
-        TurtleRecorder {
+impl Canvas {
+    pub fn new() -> Canvas {
+        Canvas {
             states: vec![TurtleState::new()],
             paths: vec![],
         }
@@ -145,7 +145,7 @@ impl TurtleRecorder {
     }
 
     /// Saves the turtle graphic as Scalable Vector Graphic (SVG).
-    pub fn save_as_svg<W: Write>(&self, wr: &mut W) -> io::Result<()> {
+    pub fn save_svg<W: Write>(&self, wr: &mut W) -> io::Result<()> {
         // Determine extend of canvas
         let mut min = Position(INFINITY, INFINITY);
         let mut max = Position(-INFINITY, -INFINITY);
@@ -194,7 +194,7 @@ impl TurtleRecorder {
     }
 }
 
-impl Turtle for TurtleRecorder {
+impl Turtle for Canvas {
     /// Move turtle forward by specified `distance`.
     fn forward<T: Into<Distance>>(&mut self, distance: T) {
         let (dx, dy) = self.direction(distance.into());
