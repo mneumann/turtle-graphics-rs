@@ -136,7 +136,6 @@ impl TurtleRecorder {
 
             min.1 = min.1.min(src.1).min(dst.1);
             max.1 = max.1.max(src.1).max(dst.1);
-
         }
         let width = (max.0 - min.0).abs();
         let height = (max.1 - min.1).abs();
@@ -209,8 +208,9 @@ impl Turtle for TurtleRecorder {
         self.current_state_mut().pendown = false;
     }
 
-    fn goto(&mut self, pos: Position) {
-        self.current_state_mut().pos = pos;
+    /// Positions the turtle exactly at `position`.
+    fn goto(&mut self, position: Position) {
+        self.current_state_mut().pos = position;
     }
 
     /// Push current turtle state on stack.
