@@ -90,14 +90,14 @@ impl TurtleState {
 
 pub struct TurtleRecorder {
     states: Vec<TurtleState>,
-    lines: Vec<(Position, Position)>,
+    paths: Vec<Vec<Position>>,
 }
 
 impl TurtleRecorder {
     pub fn new() -> TurtleRecorder {
         TurtleRecorder {
             states: vec![TurtleState::new()],
-            lines: vec![],
+            paths: vec![],
         }
     }
 
@@ -121,8 +121,22 @@ impl TurtleRecorder {
         (dx, dy)
     }
 
-    fn draw_line(&mut self, src: Position, dst: Position) {
-        self.lines.push((src, dst));
+    fn line_to(&mut self, dst: Position) {
+        self.paths.last_mut().unwrap().push(dst);
+    }
+
+    fn move_to(&mut self, dst: Position) {
+        if self.paths.is_empty() {
+            self.paths.push(vec![dst]);
+        } else {
+            let begin_new_path = self.paths.last().unwrap().len() > 1;
+            if begin_new_path {
+                self.paths.push(vec![dst]);
+            } else {
+                // Replace first path element with current position
+                self.paths.last_mut().unwrap()[0] = dst;
+            }
+        }
     }
 
     /// Saves the turtle graphic as Scalable Vector Graphic (SVG).
@@ -130,15 +144,20 @@ impl TurtleRecorder {
         // Determine extend of canvas
         let mut min = Position(INFINITY, INFINITY);
         let mut max = Position(-INFINITY, -INFINITY);
-        for &(ref src, ref dst) in self.lines.iter() {
-            min.0 = min.0.min(src.0).min(dst.0);
-            max.0 = max.0.max(src.0).max(dst.0);
+        for path in self.paths.iter() {
+            for pt in path.iter() {
+                min.0 = min.0.min(pt.0).min(pt.0);
+                max.0 = max.0.max(pt.0).max(pt.0);
 
-            min.1 = min.1.min(src.1).min(dst.1);
-            max.1 = max.1.max(src.1).max(dst.1);
+                min.1 = min.1.min(pt.1).min(pt.1);
+                max.1 = max.1.max(pt.1).max(pt.1);
+            }
         }
-        let width = (max.0 - min.0).abs();
-        let height = (max.1 - min.1).abs();
+        let width = (max.0 - min.0).abs().max(10.0);
+        let height = (max.1 - min.1).abs().max(10.0);
+
+        println!("width: {}", width);
+        println!("height: {}", height);
 
         let top_left = Position(min.0 - width / 10.0, min.1 - height / 10.0);
         let bottom_right = Position(max.0 + width / 10.0, max.1 + height / 10.0);
@@ -147,21 +166,24 @@ impl TurtleRecorder {
                       r#"<?xml version="1.0" encoding="UTF-8"?>
                 <svg xmlns="http://www.w3.org/2000/svg"
                 version="1.1" baseProfile="full"
-                width="100%" height="100%"
                 viewBox="{} {} {} {}">"#,
-                      top_left.0,
-                      top_left.1,
-                      bottom_right.0,
-                      bottom_right.1));
+                      top_left.0.ceil(),
+                      top_left.1.ceil(),
+                      bottom_right.0.ceil(),
+                      bottom_right.1.ceil()));
 
-        for &(ref src, ref dst) in self.lines.iter() {
-            try!(writeln!(wr,
-                          r#"<path d="M{} {} L{} {}" stroke="black" stroke-width="1"/>"#,
-                          src.0,
-                          src.1,
-                          dst.0,
-                          dst.1));
+         try!(writeln!(wr, r#"<g stroke="black" stroke-width="1" fill="none">"#));
+        
+        for path in self.paths.iter() {
+            if let Some((head, tail)) = path.split_first() {
+                try!(write!(wr, r#"<path d="M{} {}"#, head.0.round(), head.1.round()));
+                for pos in tail {
+                    try!(write!(wr, r#" L{} {}"#, pos.0.round(), pos.1.round()));
+                }
+                try!(writeln!(wr, r#"" />"#));
+            }
         }
+        try!(writeln!(wr, r#"</g>"#));
 
         writeln!(wr, "</svg>")
     }
@@ -175,7 +197,7 @@ impl Turtle for TurtleRecorder {
         let src: Position = self.current_state().pos;
         let dst = Position(src.0 + dx, src.1 + dy);
         if pendown {
-            self.draw_line(src, dst);
+            self.line_to(dst);
         }
         self.current_state_mut().pos = dst;
     }
@@ -200,6 +222,8 @@ impl Turtle for TurtleRecorder {
 
     /// Put the pen down.
     fn pendown(&mut self) {
+        let pos = self.current_state().pos;
+        self.move_to(pos);
         self.current_state_mut().pendown = true;
     }
 
@@ -211,6 +235,7 @@ impl Turtle for TurtleRecorder {
     /// Positions the turtle exactly at `position`.
     fn goto(&mut self, position: Position) {
         self.current_state_mut().pos = position;
+        self.move_to(position);
     }
 
     /// Push current turtle state on stack.
@@ -222,20 +247,24 @@ impl Turtle for TurtleRecorder {
     /// Restore previously saved turtle state.
     fn pop(&mut self) {
         self.states.pop();
+        let pos = self.current_state().pos;
+        self.move_to(pos);
     }
 }
-
 
 fn main() {
     use std::fs::File;
     let mut t = TurtleRecorder::new();
     t.pendown();
-    t.forward(10.0);
+    t.forward(100.0);
     t.right(Degree(90.0));
+    t.forward(100.0);
+    t.penup();
     t.forward(10.0);
+    t.pendown();
     t.right(Degree(90.0));
-    t.forward(10.0);
+    t.forward(100.0);
     t.right(Degree(90.0));
-    t.forward(10.0);
+    t.forward(100.0);
     t.save_as_svg(&mut File::create("test.svg").unwrap());
 }
