@@ -87,7 +87,7 @@ impl TurtleState {
     fn new() -> TurtleState {
         TurtleState {
             pos: Position::origin(),
-            angle: Degree(0.0), // points to the right
+            angle: Degree(-90.0), // points upwards
             pendown: false,
         }
     }
