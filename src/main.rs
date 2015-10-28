@@ -130,31 +130,12 @@ impl TurtleRecorder {
         let mut min = Position(INFINITY, INFINITY);
         let mut max = Position(-INFINITY, -INFINITY);
         for &(ref src, ref dst) in self.lines.iter() {
-            if src.0 < min.0 {
-                min.0 = src.0;
-            }
-            if dst.0 < min.0 {
-                min.0 = dst.0;
-            }
-            if src.0 > max.0 {
-                max.0 = src.0;
-            }
-            if dst.0 > max.0 {
-                max.0 = dst.0;
-            }
+            min.0 = min.0.min(src.0).min(dst.0);
+            max.0 = max.0.max(src.0).max(dst.0);
 
-            if src.1 < min.1 {
-                min.1 = src.1;
-            }
-            if dst.1 < min.1 {
-                min.1 = dst.1;
-            }
-            if src.1 > max.1 {
-                max.1 = src.1;
-            }
-            if dst.1 > max.1 {
-                max.1 = dst.1;
-            }
+            min.1 = min.1.min(src.1).min(dst.1);
+            max.1 = max.1.max(src.1).max(dst.1);
+
         }
         let width = (max.0 - min.0).abs();
         let height = (max.1 - min.1).abs();
