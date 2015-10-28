@@ -22,3 +22,7 @@ fn main() {
     t.save_svg(&mut std::io::stdout()).unwrap();
 }
 ```
+
+For more examples see my [Lindenmayer-system library][1].
+
+[1]: https://github.com/mneumann/lindenmayer-system
