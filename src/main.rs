@@ -2,15 +2,9 @@ use std::io::{self, Write};
 use std::f32::consts::PI;
 use std::f32::INFINITY;
 
-#[derive(Copy, Clone, Debug)]
-pub struct Distance(f32);
 
 #[derive(Copy, Clone, Debug)]
 pub struct Position(f32, f32);
-
-#[derive(Copy, Clone, Debug)]
-/// Wraps an angle in Radiants.
-pub struct Angle(f32);
 
 impl Position {
     pub fn origin() -> Position {
@@ -18,21 +12,26 @@ impl Position {
     }
 }
 
-pub struct Radiant(pub f32);
-
-impl Into<Angle> for Radiant {
-    fn into(self) -> Angle {
-        Angle(self.0)
-    }
-}
-
+#[derive(Copy, Clone, Debug)]
 pub struct Degree(pub f32);
 
-impl Into<Angle> for Degree {
-    fn into(self) -> Angle {
-        Angle(self.0 * PI / 180.0)
+#[derive(Copy, Clone, Debug)]
+pub struct Radiant(pub f32);
+
+impl Into<Degree> for Radiant {
+    fn into(self) -> Degree {
+        Degree(self.0 * 180.0 / PI)
     }
 }
+
+impl Into<Radiant> for Degree {
+    fn into(self) -> Radiant {
+        Radiant(self.0 * PI / 180.0)
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Distance(f32);
 
 impl Into<Distance> for f32 {
     fn into(self) -> Distance {
@@ -47,11 +46,11 @@ pub trait Turtle {
     /// Move turtle backward by specified `distance`.
     fn backward<T: Into<Distance>>(&mut self, distance: T);
 
-    /// Turn turtle right by `angle`.
-    fn right<T: Into<Angle>>(&mut self, angle: T);
+    /// Turn turtle right by `angle` degree.
+    fn right<T: Into<Degree>>(&mut self, angle: T);
 
-    /// Turn turtle left by `angle`.
-    fn left<T: Into<Angle>>(&mut self, angle: T);
+    /// Turn turtle left by `angle` degree.
+    fn left<T: Into<Degree>>(&mut self, angle: T);
 
     /// Put the pen down.
     fn pendown(&mut self);
@@ -75,7 +74,7 @@ pub trait Turtle {
 #[derive(Clone)]
 pub struct TurtleState {
     pos: Position,
-    angle: Angle,
+    angle: Degree,
     pendown: bool,
 }
 
@@ -83,7 +82,7 @@ impl TurtleState {
     fn new() -> TurtleState {
         TurtleState {
             pos: Position::origin(),
-            angle: Angle(0.0),
+            angle: Degree(0.0),
             pendown: true,
         }
     }
@@ -115,13 +114,13 @@ impl TurtleRecorder {
     #[inline]
     fn direction(&self, distance: Distance) -> (f32, f32) {
         let state = self.current_state();
-        let dx = state.angle.0.cos() * distance.0;
-        let dy = state.angle.0.sin() * distance.0;
+        let rad: Radiant = state.angle.into();
+        let dx = rad.0.cos() * distance.0;
+        let dy = rad.0.sin() * distance.0;
         (dx, dy)
     }
 
     fn draw_line(&mut self, src: Position, dst: Position) {
-        println!("line from {:?} to {:?}", src, dst);
         self.lines.push((src, dst));
     }
 
@@ -207,14 +206,14 @@ impl Turtle for TurtleRecorder {
     }
 
     /// Turn turtle right by `angle` degrees.
-    fn right<T: Into<Angle>>(&mut self, angle: T) {
-        let angle: Angle = angle.into();
+    fn right<T: Into<Degree>>(&mut self, angle: T) {
+        let angle: Degree = angle.into();
         self.current_state_mut().angle.0 += angle.0;
     }
 
     /// Turn turtle left by `angle` degrees.
-    fn left<T: Into<Angle>>(&mut self, angle: T) {
-        let angle: Angle = angle.into();
+    fn left<T: Into<Degree>>(&mut self, angle: T) {
+        let angle: Degree = angle.into();
         self.current_state_mut().angle.0 -= angle.0;
     }
 
