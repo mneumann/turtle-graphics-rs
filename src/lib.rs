@@ -94,7 +94,7 @@ impl Canvas {
         let init_state = TurtleState {
             pos: init_pos,
             angle: Degree(-90.0), // points upwards
-            pendown: true, // start with pen down
+            pendown: true, /* start with pen down */
         };
         Canvas {
             states: vec![init_state],
@@ -159,9 +159,10 @@ impl Canvas {
         let height = (max.1 - min.1).abs().max(min_height);
         let border_percent = 0.1;
 
-        let top_left = Position(min.0 - border_percent*width, min.1 - border_percent*height);
+        let top_left = Position(min.0 - border_percent * width,
+                                min.1 - border_percent * height);
 
-        let scale = 1.0 + 2.0*border_percent;
+        let scale = 1.0 + 2.0 * border_percent;
 
         try!(writeln!(wr,
                       r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -175,8 +176,10 @@ impl Canvas {
 
         // use a stroke width of 0.1% of the width or height of the canvas
         let stroke_width = scale * width.max(height) / 1000.0;
-        try!(writeln!(wr, r#"<g stroke="black" stroke-width="{}" fill="none">"#, stroke_width));
-        
+        try!(writeln!(wr,
+                      r#"<g stroke="black" stroke-width="{}" fill="none">"#,
+                      stroke_width));
+
         for path in self.paths.iter() {
             if let Some((head, tail)) = path.split_first() {
                 try!(write!(wr, r#"<path d="M{} {}"#, head.0, head.1));
