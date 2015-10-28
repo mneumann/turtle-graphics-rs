@@ -83,16 +83,6 @@ struct TurtleState {
     pendown: bool,
 }
 
-impl TurtleState {
-    fn new() -> TurtleState {
-        TurtleState {
-            pos: Position::origin(),
-            angle: Degree(-90.0), // points upwards
-            pendown: false,
-        }
-    }
-}
-
 pub struct Canvas {
     states: Vec<TurtleState>,
     paths: Vec<Vec<Position>>,
@@ -100,9 +90,15 @@ pub struct Canvas {
 
 impl Canvas {
     pub fn new() -> Canvas {
+        let init_pos = Position::origin();
+        let init_state = TurtleState {
+            pos: init_pos,
+            angle: Degree(-90.0), // points upwards
+            pendown: true, // start with pen down
+        };
         Canvas {
-            states: vec![TurtleState::new()],
-            paths: vec![],
+            states: vec![init_state],
+            paths: vec![vec![init_pos]],
         }
     }
 

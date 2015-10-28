@@ -5,7 +5,6 @@ use turtle::{Canvas, Turtle};
 
 fn main() {
     let mut t = Canvas::new();
-    t.pendown();
     t.forward(100.0);
     t.right(90.0);
     t.forward(100.0);
