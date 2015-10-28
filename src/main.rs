@@ -83,7 +83,7 @@ impl TurtleState {
         TurtleState {
             pos: Position::origin(),
             angle: Degree(0.0),
-            pendown: true,
+            pendown: false,
         }
     }
 }
@@ -247,6 +247,7 @@ impl Turtle for TurtleRecorder {
 fn main() {
     use std::fs::File;
     let mut t = TurtleRecorder::new();
+    t.pendown();
     t.forward(10.0);
     t.right(Degree(90.0));
     t.forward(10.0);
