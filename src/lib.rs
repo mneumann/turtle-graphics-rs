@@ -158,32 +158,34 @@ impl Canvas {
                 max.1 = max.1.max(pt.1).max(pt.1);
             }
         }
-        let width = (max.0 - min.0).abs().max(10.0);
-        let height = (max.1 - min.1).abs().max(10.0);
+        let (min_width, min_height) = (100.0, 100.0);
+        let width = (max.0 - min.0).abs().max(min_width);
+        let height = (max.1 - min.1).abs().max(min_height);
+        let border_percent = 0.1;
 
-        println!("width: {}", width);
-        println!("height: {}", height);
+        let top_left = Position(min.0 - border_percent*width, min.1 - border_percent*height);
 
-        let top_left = Position(min.0 - width / 10.0, min.1 - height / 10.0);
-        let bottom_right = Position(max.0 + width / 10.0, max.1 + height / 10.0);
+        let scale = 1.0 + 2.0*border_percent;
 
         try!(writeln!(wr,
                       r#"<?xml version="1.0" encoding="UTF-8"?>
                 <svg xmlns="http://www.w3.org/2000/svg"
                 version="1.1" baseProfile="full"
                 viewBox="{} {} {} {}">"#,
-                      top_left.0.ceil(),
-                      top_left.1.ceil(),
-                      bottom_right.0.ceil(),
-                      bottom_right.1.ceil()));
+                      top_left.0,
+                      top_left.1,
+                      scale * width,
+                      scale * height));
 
-         try!(writeln!(wr, r#"<g stroke="black" stroke-width="1" fill="none">"#));
+        // use a stroke width of 0.1% of the width or height of the canvas
+        let stroke_width = scale * width.max(height) / 1000.0;
+        try!(writeln!(wr, r#"<g stroke="black" stroke-width="{}" fill="none">"#, stroke_width));
         
         for path in self.paths.iter() {
             if let Some((head, tail)) = path.split_first() {
-                try!(write!(wr, r#"<path d="M{} {}"#, head.0.round(), head.1.round()));
+                try!(write!(wr, r#"<path d="M{} {}"#, head.0, head.1));
                 for pos in tail {
-                    try!(write!(wr, r#" L{} {}"#, pos.0.round(), pos.1.round()));
+                    try!(write!(wr, r#" L{} {}"#, pos.0, pos.1));
                 }
                 try!(writeln!(wr, r#"" />"#));
             }
