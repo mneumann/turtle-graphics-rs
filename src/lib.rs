@@ -2,7 +2,6 @@ use std::io::{self, Write};
 use std::f32::consts::PI;
 use std::f32::INFINITY;
 
-
 #[derive(Copy, Clone, Debug)]
 pub struct Position(f32, f32);
 
@@ -21,6 +20,12 @@ pub struct Radiant(pub f32);
 impl Into<Degree> for Radiant {
     fn into(self) -> Degree {
         Degree(self.0 * 180.0 / PI)
+    }
+}
+
+impl Into<Degree> for f32 {
+    fn into(self) -> Degree {
+        Degree(self)
     }
 }
 
@@ -250,21 +255,4 @@ impl Turtle for TurtleRecorder {
         let pos = self.current_state().pos;
         self.move_to(pos);
     }
-}
-
-fn main() {
-    use std::fs::File;
-    let mut t = TurtleRecorder::new();
-    t.pendown();
-    t.forward(100.0);
-    t.right(Degree(90.0));
-    t.forward(100.0);
-    t.penup();
-    t.forward(10.0);
-    t.pendown();
-    t.right(Degree(90.0));
-    t.forward(100.0);
-    t.right(Degree(90.0));
-    t.forward(100.0);
-    t.save_as_svg(&mut File::create("test.svg").unwrap());
 }
