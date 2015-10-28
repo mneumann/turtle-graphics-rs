@@ -115,8 +115,9 @@ impl TurtleRecorder {
     fn direction(&self, distance: Distance) -> (f32, f32) {
         let state = self.current_state();
         let rad: Radiant = state.angle.into();
-        let dx = rad.0.cos() * distance.0;
-        let dy = rad.0.sin() * distance.0;
+        let (sin, cos) = rad.0.sin_cos();
+        let dx = cos * distance.0;
+        let dy = sin * distance.0;
         (dx, dy)
     }
 
