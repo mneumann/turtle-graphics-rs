@@ -130,7 +130,9 @@ impl Canvas {
         let init_pos = Position::origin();
         let init_state = TurtleState {
             pos: init_pos,
-            angle: Degree(0.0), // points upwards
+            // The SVG coordinates are from top to bottom, while turtle coordinates are bottom to
+            // top.
+            angle: Degree(180.0), // points upwards
             pendown: true, /* start with pen down */
         };
         Canvas {
