@@ -8,9 +8,9 @@ fn main() {
     t.forward(100.0);
     t.right(90.0);
     t.forward(100.0);
-    t.penup();
+    t.pen_up();
     t.forward(10.0);
-    t.pendown();
+    t.pen_down();
     t.right(90.0);
     t.forward(100.0);
     t.right(90.0);

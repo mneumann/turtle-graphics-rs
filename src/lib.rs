@@ -83,11 +83,19 @@ pub trait Turtle {
         self.rotate(angle.into());
     }
 
+    /// Returns `true` if pen is down.
+    fn is_pen_down(&self) -> bool;
+
+    /// Returns `true` if pen is up.
+    fn is_pen_up(&self) -> bool {
+        !self.is_pen_down()
+    }
+
     /// Put the pen down.
-    fn pendown(&mut self);
+    fn pen_down(&mut self);
 
     /// Put the pen up.
-    fn penup(&mut self);
+    fn pen_up(&mut self);
 
     fn goto(&mut self, pos: Position);
 
@@ -239,15 +247,19 @@ impl Turtle for Canvas {
         self.current_state_mut().angle.0 += angle.0;
     }
 
+    fn is_pen_down(&self) -> bool {
+        self.current_state().pendown
+    }
+
     /// Put the pen down.
-    fn pendown(&mut self) {
+    fn pen_down(&mut self) {
         let pos = self.current_state().pos;
         self.move_to(pos);
         self.current_state_mut().pendown = true;
     }
 
     /// Put the pen up.
-    fn penup(&mut self) {
+    fn pen_up(&mut self) {
         self.current_state_mut().pendown = false;
     }
 
