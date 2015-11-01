@@ -68,6 +68,9 @@ pub trait Turtle {
         self.forward(-distance.into())
     }
 
+    /// Move turtle forward by specified `distance` *without* drawing.
+    fn move_forward<T: Into<Distance>>(&mut self, distance: T);
+
     /// Rotate around `angle`. If `angle` is positive,
     /// the turtle is turned to the left, if negative,
     /// to the right.
@@ -233,10 +236,9 @@ impl Turtle for Canvas {
     /// Move turtle forward by specified `distance`.
     fn forward<T: Into<Distance>>(&mut self, distance: T) {
         let (dx, dy) = self.direction(distance.into());
-        let pendown = self.current_state().pendown;
         let src: Position = self.current_state().pos;
         let dst = Position(src.0 + dx, src.1 + dy);
-        if pendown {
+        if self.is_pen_down() {
             self.line_to(dst);
         }
         self.current_state_mut().pos = dst;
@@ -245,6 +247,13 @@ impl Turtle for Canvas {
     fn rotate<T: Into<Degree>>(&mut self, angle: T) {
         let angle: Degree = angle.into();
         self.current_state_mut().angle.0 += angle.0;
+    }
+
+    fn move_forward<T: Into<Distance>>(&mut self, distance: T) {
+        let (dx, dy) = self.direction(distance.into());
+        let src: Position = self.current_state().pos;
+        let dst = Position(src.0 + dx, src.1 + dy);
+        self.move_to(dst);
     }
 
     fn is_pen_down(&self) -> bool {
