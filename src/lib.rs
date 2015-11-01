@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 use std::f32::consts::PI;
 use std::f32::INFINITY;
+use std::ops::Neg;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Position(f32, f32);
@@ -44,18 +45,43 @@ impl Into<Distance> for f32 {
     }
 }
 
+impl Neg for Distance {
+    type Output = Distance;
+    fn neg(self) -> Self::Output {
+        Distance(-self.0)
+    }
+}
+
+impl Neg for Degree {
+    type Output = Degree;
+    fn neg(self) -> Self::Output {
+        Degree(-self.0)
+    }
+}
+
 pub trait Turtle {
     /// Move turtle forward by specified `distance`.
     fn forward<T: Into<Distance>>(&mut self, distance: T);
 
     /// Move turtle backward by specified `distance`.
-    fn backward<T: Into<Distance>>(&mut self, distance: T);
+    fn backward<T: Into<Distance>>(&mut self, distance: T) {
+        self.forward(-distance.into())
+    }
+
+    /// Rotate around `angle`. If `angle` is positive,
+    /// the turtle is turned to the left, if negative,
+    /// to the right.
+    fn rotate<T: Into<Degree>>(&mut self, angle: T);
 
     /// Turn turtle right by `angle` degree.
-    fn right<T: Into<Degree>>(&mut self, angle: T);
+    fn right<T: Into<Degree>>(&mut self, angle: T) {
+        self.rotate(-angle.into());
+    }
 
     /// Turn turtle left by `angle` degree.
-    fn left<T: Into<Degree>>(&mut self, angle: T);
+    fn left<T: Into<Degree>>(&mut self, angle: T) {
+        self.rotate(angle.into());
+    }
 
     /// Put the pen down.
     fn pendown(&mut self);
@@ -93,7 +119,7 @@ impl Canvas {
         let init_pos = Position::origin();
         let init_state = TurtleState {
             pos: init_pos,
-            angle: Degree(-90.0), // points upwards
+            angle: Degree(0.0), // points upwards
             pendown: true, /* start with pen down */
         };
         Canvas {
@@ -117,8 +143,8 @@ impl Canvas {
         let state = self.current_state();
         let rad: Radiant = state.angle.into();
         let (sin, cos) = rad.0.sin_cos();
-        let dx = cos * distance.0;
-        let dy = sin * distance.0;
+        let dx = sin * distance.0;
+        let dy = cos * distance.0;
         (dx, dy)
     }
 
@@ -208,22 +234,9 @@ impl Turtle for Canvas {
         self.current_state_mut().pos = dst;
     }
 
-    /// Move turtle backward by specified `distance`.
-    fn backward<T: Into<Distance>>(&mut self, distance: T) {
-        let distance: Distance = distance.into();
-        self.forward(Distance(-distance.0))
-    }
-
-    /// Turn turtle right by `angle` degrees.
-    fn right<T: Into<Degree>>(&mut self, angle: T) {
+    fn rotate<T: Into<Degree>>(&mut self, angle: T) {
         let angle: Degree = angle.into();
         self.current_state_mut().angle.0 += angle.0;
-    }
-
-    /// Turn turtle left by `angle` degrees.
-    fn left<T: Into<Degree>>(&mut self, angle: T) {
-        let angle: Degree = angle.into();
-        self.current_state_mut().angle.0 -= angle.0;
     }
 
     /// Put the pen down.
