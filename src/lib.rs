@@ -63,6 +63,15 @@ impl Bounds {
         let (min, _) = self.min_max.unwrap();
         min.1
     }
+
+    fn max_x(&self) -> f32 {
+        let (_, max) = self.min_max.unwrap();
+        max.0
+    }
+    fn max_y(&self) -> f32 {
+        let (_, max) = self.min_max.unwrap();
+        max.1
+    }
 }
 
 impl Add<Position> for Position {
@@ -215,7 +224,7 @@ impl Canvas {
         let state = self.current_state();
         let rad: Radiant = state.angle.into();
         let (sin, cos) = rad.0.sin_cos();
-        let dx = sin * distance.0;
+        let dx = -sin * distance.0;
         let dy = cos * distance.0;
         (dx, dy)
     }
@@ -245,6 +254,55 @@ impl Canvas {
             }
         }
     }
+
+    /// Saves the turtle graphic as Embedded Postscript (EPS)
+    pub fn save_eps<W: Write>(&self, wr: &mut W) -> io::Result<()> {
+        // Determine extend of canvas
+        let mut bounds = Bounds::new();
+
+        // The EPS coordinates are from bottom to top, like turtle coordinates.
+        self.foreach_position(|pos| bounds.add_position(pos), 1.0, 1.0);
+
+        let (min_width, min_height) = (100.0, 100.0);
+        let width = bounds.width().max(min_width);
+        let height = bounds.height().max(min_height);
+        let border_percent = 0.1;
+
+        let scale = 1.0 + 2.0 * border_percent;
+
+        try!(writeln!(wr, r#"%%!PS-Adobe-3.0 EPSF-3.0
+%%Creator: https://github.com/mneumann/turtle-rs
+%%DocumentData: Clean7Bit
+%%Origin: 0 0
+%%BoundingBox: {} {} {} {}
+%%LanguageLevel: 2
+%%Pages: 1
+%%Page: 1 1
+"#,
+        bounds.min_x() - border_percent * width,
+        bounds.min_y() - border_percent * height,
+        bounds.max_x() + border_percent * width,
+        bounds.max_y() + border_percent * height));
+
+        // use a stroke width of 0.1% of the width or height of the canvas
+        let stroke_width = scale * width.max(height) / 1000.0;
+        try!(writeln!(wr,
+                      r#"{} setlinewidth"#,
+                      stroke_width));
+
+        for path in self.paths.iter() {
+            if let Some((head, tail)) = path.split_first() {
+                try!(writeln!(wr, "newpath"));
+                try!(writeln!(wr, "  {} {} moveto", head.0, head.1));
+                for pos in tail {
+                    try!(writeln!(wr, r#"  {} {} lineto"#, pos.0, pos.1));
+                }
+                try!(writeln!(wr, r#"stroke"#));
+            }
+        }
+        writeln!(wr, "%%EOF")
+    }
+
 
     /// Saves the turtle graphic as Scalable Vector Graphic (SVG).
     pub fn save_svg<W: Write>(&self, wr: &mut W) -> io::Result<()> {
