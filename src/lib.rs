@@ -1,7 +1,6 @@
 use std::io::{self, Write};
 use std::f32::consts::PI;
-use std::f32::INFINITY;
-use std::ops::Neg;
+use std::ops::{Add, Neg};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Position(f32, f32);
@@ -9,6 +8,67 @@ pub struct Position(f32, f32);
 impl Position {
     pub fn origin() -> Position {
         Position(0.0, 0.0)
+    }
+
+    pub fn min(&self, other: &Position) -> Position {
+        Position(self.0.min(other.0), self.1.min(other.1))
+    }
+
+    pub fn max(&self, other: &Position) -> Position {
+        Position(self.0.max(other.0), self.1.max(other.1))
+    }
+
+    pub fn min_max(&self, min_max: &(Position, Position)) -> (Position, Position) {
+        (self.min(&min_max.0), self.max(&min_max.1))
+    }
+}
+
+struct Bounds {
+    min_max: Option<(Position, Position)>,
+}
+
+impl Bounds {
+    fn new() -> Bounds {
+        Bounds { min_max: None }
+    }
+
+    fn add_position(&mut self, pos: Position) {
+        let mm = match self.min_max {
+            None => (pos, pos),
+            Some(ref a) => pos.min_max(a),
+        };
+
+        self.min_max = Some(mm);
+    }
+
+    fn is_bounded(&self) -> bool {
+        self.min_max.is_some()
+    }
+
+    fn width(&self) -> f32 {
+        let (min, max) = self.min_max.unwrap();
+        (max.0 - min.0).abs()
+    }
+
+    fn height(&self) -> f32 {
+        let (min, max) = self.min_max.unwrap();
+        (max.1 - min.1).abs()
+    }
+
+    fn min_x(&self) -> f32 {
+        let (min, _) = self.min_max.unwrap();
+        min.0
+    }
+    fn min_y(&self) -> f32 {
+        let (min, _) = self.min_max.unwrap();
+        min.1
+    }
+}
+
+impl Add<Position> for Position {
+    type Output = Position;
+    fn add(self, other: Position) -> Self::Output {
+        Position(self.0 + other.0, self.1 + other.1)
     }
 }
 
@@ -130,9 +190,8 @@ impl Canvas {
         let init_pos = Position::origin();
         let init_state = TurtleState {
             pos: init_pos,
-            // The SVG coordinates are from top to bottom, while turtle coordinates are bottom to
-            // top.
-            angle: Degree(180.0), // points upwards
+            // The coordinate system we use: x from left to right. y from bottom to top.
+            angle: Degree(0.0), // points upwards
             pendown: true, /* start with pen down */
         };
         Canvas {
@@ -179,27 +238,31 @@ impl Canvas {
         }
     }
 
+    fn foreach_position<F: FnMut(Position)>(&self, mut f: F, scale_x: f32, scale_y: f32) {
+        for path in self.paths.iter() {
+            for pos in path.iter() {
+                f(Position(pos.0 * scale_x, pos.1 * scale_y));
+            }
+        }
+    }
+
     /// Saves the turtle graphic as Scalable Vector Graphic (SVG).
     pub fn save_svg<W: Write>(&self, wr: &mut W) -> io::Result<()> {
         // Determine extend of canvas
-        let mut min = Position(INFINITY, INFINITY);
-        let mut max = Position(-INFINITY, -INFINITY);
-        for path in self.paths.iter() {
-            for pt in path.iter() {
-                min.0 = min.0.min(pt.0).min(pt.0);
-                max.0 = max.0.max(pt.0).max(pt.0);
+        let mut bounds = Bounds::new();
 
-                min.1 = min.1.min(pt.1).min(pt.1);
-                max.1 = max.1.max(pt.1).max(pt.1);
-            }
-        }
+        // The SVG coordinates are from top to bottom, while turtle coordinates are
+        // bottom to
+        // top. We have to convert between the two. (multiply `y` by -1.0)
+        self.foreach_position(|pos| bounds.add_position(pos), 1.0, -1.0);
+
         let (min_width, min_height) = (100.0, 100.0);
-        let width = (max.0 - min.0).abs().max(min_width);
-        let height = (max.1 - min.1).abs().max(min_height);
+        let width = bounds.width().max(min_width);
+        let height = bounds.height().max(min_height);
         let border_percent = 0.1;
 
-        let top_left = Position(min.0 - border_percent * width,
-                                min.1 - border_percent * height);
+        let top_left = Position(bounds.min_x() - border_percent * width,
+                                bounds.min_y() - border_percent * height);
 
         let scale = 1.0 + 2.0 * border_percent;
 
@@ -221,8 +284,12 @@ impl Canvas {
 
         for path in self.paths.iter() {
             if let Some((head, tail)) = path.split_first() {
+                // XXX
+                let head = Position(head.0, -1.0 * head.1);
+
                 try!(write!(wr, r#"<path d="M{} {}"#, head.0, head.1));
                 for pos in tail {
+                    let pos = Position(pos.0, -1.0 * pos.1);
                     try!(write!(wr, r#" L{} {}"#, pos.0, pos.1));
                 }
                 try!(writeln!(wr, r#"" />"#));
@@ -256,6 +323,7 @@ impl Turtle for Canvas {
         let src: Position = self.current_state().pos;
         let dst = Position(src.0 + dx, src.1 + dy);
         self.move_to(dst);
+        self.current_state_mut().pos = dst;
     }
 
     fn is_pen_down(&self) -> bool {
