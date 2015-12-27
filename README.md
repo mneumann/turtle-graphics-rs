@@ -1,5 +1,7 @@
 # turtle-rs
-Turtle Graphics for Rust. Generates Scalable Vector Graphics (SVG) out-of-the-box.
+
+A turtle graphics engine for Rust. Generates Scalable Vector Graphics (SVG) and
+Encapsulated PostScript (EPS) out-of-the-box.
 
 ## Example
 
@@ -20,6 +22,9 @@ fn main() {
 
     // write the graphic (SVG) to stdout.
     t.save_svg(&mut std::io::stdout()).unwrap();
+
+   // or write it as EPS
+   t.save_eps(&mut File::create("test.eps").unwrap()).unwrap();
 }
 ```
 
