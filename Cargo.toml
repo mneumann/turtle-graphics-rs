@@ -7,3 +7,4 @@ license = "MIT"
 repository = "https://github.com/mneumann/turtle-rs"
 description = "Turtle Graphics for Rust"
 keywords = ["graphics"]
+readme = "Readme.md"
