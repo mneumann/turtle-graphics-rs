@@ -1,7 +1,5 @@
-extern crate turtle;
-
 use std::fs::File;
-use turtle::{Canvas, Turtle};
+use turtle_graphics::{Canvas, Turtle};
 
 fn main() {
     let mut t = Canvas::new();

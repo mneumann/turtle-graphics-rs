@@ -271,9 +271,9 @@ impl Canvas {
 
         let scale = 1.0 + 2.0 * border_percent;
 
-        try!(writeln!(wr,
+        writeln!(wr,
                       r#"%%!PS-Adobe-3.0 EPSF-3.0
-%%Creator: https://github.com/mneumann/turtle-rs
+%%Creator: https://github.com/mneumann/turtle-graphics-rs
 %%DocumentData: Clean7Bit
 %%Origin: 0 0
 %%BoundingBox: {} {} {} {}
@@ -284,20 +284,20 @@ impl Canvas {
                       bounds.min_x() - border_percent * width,
                       bounds.min_y() - border_percent * height,
                       bounds.max_x() + border_percent * width,
-                      bounds.max_y() + border_percent * height));
+                      bounds.max_y() + border_percent * height)?;
 
         // use a stroke width of 0.1% of the width or height of the canvas
         let stroke_width = scale * width.max(height) / 1000.0;
-        try!(writeln!(wr, r#"{} setlinewidth"#, stroke_width));
+        writeln!(wr, r#"{} setlinewidth"#, stroke_width)?;
 
         for path in self.paths.iter() {
             if let Some((head, tail)) = path.split_first() {
-                try!(writeln!(wr, "newpath"));
-                try!(writeln!(wr, "  {} {} moveto", head.0, head.1));
+                writeln!(wr, "newpath")?;
+                writeln!(wr, "  {} {} moveto", head.0, head.1)?;
                 for pos in tail {
-                    try!(writeln!(wr, r#"  {} {} lineto"#, pos.0, pos.1));
+                    writeln!(wr, r#"  {} {} lineto"#, pos.0, pos.1)?;
                 }
-                try!(writeln!(wr, r#"stroke"#));
+                writeln!(wr, r#"stroke"#)?;
             }
         }
         writeln!(wr, "%%EOF")
@@ -324,7 +324,7 @@ impl Canvas {
 
         let scale = 1.0 + 2.0 * border_percent;
 
-        try!(writeln!(wr,
+        writeln!(wr,
                       r#"<?xml version="1.0" encoding="UTF-8"?>
                 <svg xmlns="http://www.w3.org/2000/svg"
                 version="1.1" baseProfile="full"
@@ -332,28 +332,28 @@ impl Canvas {
                       top_left.0,
                       top_left.1,
                       scale * width,
-                      scale * height));
+                      scale * height)?;
 
         // use a stroke width of 0.1% of the width or height of the canvas
         let stroke_width = scale * width.max(height) / 1000.0;
-        try!(writeln!(wr,
+        writeln!(wr,
                       r#"<g stroke="black" stroke-width="{}" fill="none">"#,
-                      stroke_width));
+                      stroke_width)?;
 
         for path in self.paths.iter() {
             if let Some((head, tail)) = path.split_first() {
                 // XXX
                 let head = Position(head.0, -1.0 * head.1);
 
-                try!(write!(wr, r#"<path d="M{} {}"#, head.0, head.1));
+                write!(wr, r#"<path d="M{} {}"#, head.0, head.1)?;
                 for pos in tail {
                     let pos = Position(pos.0, -1.0 * pos.1);
-                    try!(write!(wr, r#" L{} {}"#, pos.0, pos.1));
+                    write!(wr, r#" L{} {}"#, pos.0, pos.1)?;
                 }
-                try!(writeln!(wr, r#"" />"#));
+                writeln!(wr, r#"" />"#)?;
             }
         }
-        try!(writeln!(wr, r#"</g>"#));
+        writeln!(wr, r#"</g>"#)?;
 
         writeln!(wr, "</svg>")
     }
