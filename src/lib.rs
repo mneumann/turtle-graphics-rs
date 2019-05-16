@@ -1,5 +1,5 @@
-use std::io::{self, Write};
 use std::f32::consts::PI;
+use std::io::{self, Write};
 use std::ops::{Add, Neg};
 
 #[derive(Copy, Clone, Debug)]
@@ -202,7 +202,7 @@ impl Canvas {
             pos: init_pos,
             // The coordinate system we use: x from left to right. y from bottom to top.
             angle: Degree(0.0), // points upwards
-            pendown: true, // start with pen down
+            pendown: true,      // start with pen down
         };
         Canvas {
             states: vec![init_state],
@@ -271,8 +271,9 @@ impl Canvas {
 
         let scale = 1.0 + 2.0 * border_percent;
 
-        writeln!(wr,
-                      r#"%%!PS-Adobe-3.0 EPSF-3.0
+        writeln!(
+            wr,
+            r#"%%!PS-Adobe-3.0 EPSF-3.0
 %%Creator: https://github.com/mneumann/turtle-graphics-rs
 %%DocumentData: Clean7Bit
 %%Origin: 0 0
@@ -281,10 +282,11 @@ impl Canvas {
 %%Pages: 1
 %%Page: 1 1
 "#,
-                      bounds.min_x() - border_percent * width,
-                      bounds.min_y() - border_percent * height,
-                      bounds.max_x() + border_percent * width,
-                      bounds.max_y() + border_percent * height)?;
+            bounds.min_x() - border_percent * width,
+            bounds.min_y() - border_percent * height,
+            bounds.max_x() + border_percent * width,
+            bounds.max_y() + border_percent * height
+        )?;
 
         // use a stroke width of 0.1% of the width or height of the canvas
         let stroke_width = scale * width.max(height) / 1000.0;
@@ -303,7 +305,6 @@ impl Canvas {
         writeln!(wr, "%%EOF")
     }
 
-
     /// Saves the turtle graphic as Scalable Vector Graphic (SVG).
     pub fn save_svg<W: Write>(&self, wr: &mut W) -> io::Result<()> {
         // Determine extend of canvas
@@ -319,26 +320,32 @@ impl Canvas {
         let height = bounds.height().max(min_height);
         let border_percent = 0.1;
 
-        let top_left = Position(bounds.min_x() - border_percent * width,
-                                bounds.min_y() - border_percent * height);
+        let top_left = Position(
+            bounds.min_x() - border_percent * width,
+            bounds.min_y() - border_percent * height,
+        );
 
         let scale = 1.0 + 2.0 * border_percent;
 
-        writeln!(wr,
-                      r#"<?xml version="1.0" encoding="UTF-8"?>
+        writeln!(
+            wr,
+            r#"<?xml version="1.0" encoding="UTF-8"?>
                 <svg xmlns="http://www.w3.org/2000/svg"
                 version="1.1" baseProfile="full"
                 viewBox="{} {} {} {}">"#,
-                      top_left.0,
-                      top_left.1,
-                      scale * width,
-                      scale * height)?;
+            top_left.0,
+            top_left.1,
+            scale * width,
+            scale * height
+        )?;
 
         // use a stroke width of 0.1% of the width or height of the canvas
         let stroke_width = scale * width.max(height) / 1000.0;
-        writeln!(wr,
-                      r#"<g stroke="black" stroke-width="{}" fill="none">"#,
-                      stroke_width)?;
+        writeln!(
+            wr,
+            r#"<g stroke="black" stroke-width="{}" fill="none">"#,
+            stroke_width
+        )?;
 
         for path in self.paths.iter() {
             if let Some((head, tail)) = path.split_first() {
