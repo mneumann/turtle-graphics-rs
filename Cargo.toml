@@ -1,6 +1,6 @@
 [package]
 name = "turtle-graphics"
-version = "0.1.2"
+version = "0.1.2-wide"
 authors = ["Michael Neumann <mneumann@ntecs.de>"]
 edition = "2018"
 license = "MIT"

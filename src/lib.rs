@@ -288,8 +288,8 @@ impl Canvas {
             bounds.max_y() + border_percent * height
         )?;
 
-        // use a stroke width of 0.1% of the width or height of the canvas
-        let stroke_width = scale * width.max(height) / 1000.0;
+        // use a stroke width of 1% of the width or height of the canvas
+        let stroke_width = scale * width.max(height) / 100.0;
         writeln!(wr, r#"{} setlinewidth"#, stroke_width)?;
 
         for path in self.paths.iter() {
