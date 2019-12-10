@@ -2,6 +2,8 @@ use std::f32::consts::PI;
 use std::io::{self, Write};
 use std::ops::{Add, Neg};
 
+const STROKE_WIDTH: f32 = 5.0;
+
 #[derive(Copy, Clone, Debug)]
 pub struct Position(f32, f32);
 
@@ -288,9 +290,7 @@ impl Canvas {
             bounds.max_y() + border_percent * height
         )?;
 
-        // use a stroke width of 1% of the width or height of the canvas
-        let stroke_width = scale * width.max(height) / 100.0;
-        writeln!(wr, r#"{} setlinewidth"#, stroke_width)?;
+        writeln!(wr, r#"{} setlinewidth"#, STROKE_WIDTH)?;
 
         for path in self.paths.iter() {
             if let Some((head, tail)) = path.split_first() {
@@ -339,12 +339,10 @@ impl Canvas {
             scale * height
         )?;
 
-        // use a stroke width of 0.3% of the width or height of the canvas
-        let stroke_width = scale * width.max(height) / 333.0;
         writeln!(
             wr,
             r#"<g stroke="black" stroke-width="{}" fill="none">"#,
-            stroke_width
+            STROKE_WIDTH
         )?;
 
         for path in self.paths.iter() {
