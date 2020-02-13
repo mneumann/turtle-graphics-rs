@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 use std::io::{self, Write};
 use std::ops::{Add, Neg};
 
-const STROKE_WIDTH: f32 = 5.0;
+const STROKE_WIDTH: f32 = 2.0;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Position(f32, f32);
