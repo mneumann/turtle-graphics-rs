@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 use std::io::{self, Write};
 use std::ops::{Add, Neg};
 
-const STROKE_WIDTH: f32 = 2.0;
+const DEFAULT_STROKE_WIDTH: f32 = 2.0;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Position(f32, f32);
@@ -259,7 +259,7 @@ impl Canvas {
     }
 
     /// Saves the turtle graphic as Embedded Postscript (EPS)
-    pub fn save_eps<W: Write>(&self, wr: &mut W) -> io::Result<()> {
+    pub fn save_eps<W: Write>(&self, wr: &mut W, stroke_width: Option<f32>) -> io::Result<()> {
         // Determine extend of canvas
         let mut bounds = Bounds::new();
 
@@ -270,8 +270,6 @@ impl Canvas {
         let width = bounds.width().max(min_width);
         let height = bounds.height().max(min_height);
         let border_percent = 0.1;
-
-        let scale = 1.0 + 2.0 * border_percent;
 
         writeln!(
             wr,
@@ -290,7 +288,11 @@ impl Canvas {
             bounds.max_y() + border_percent * height
         )?;
 
-        writeln!(wr, r#"{} setlinewidth"#, STROKE_WIDTH)?;
+        writeln!(
+            wr,
+            r#"{} setlinewidth"#,
+            stroke_width.unwrap_or(DEFAULT_STROKE_WIDTH)
+        )?;
 
         for path in self.paths.iter() {
             if let Some((head, tail)) = path.split_first() {
@@ -306,7 +308,7 @@ impl Canvas {
     }
 
     /// Saves the turtle graphic as Scalable Vector Graphic (SVG).
-    pub fn save_svg<W: Write>(&self, wr: &mut W) -> io::Result<()> {
+    pub fn save_svg<W: Write>(&self, wr: &mut W, stroke_width: Option<f32>) -> io::Result<()> {
         // Determine extend of canvas
         let mut bounds = Bounds::new();
 
@@ -342,7 +344,7 @@ impl Canvas {
         writeln!(
             wr,
             r#"<g stroke="black" stroke-width="{}" fill="none">"#,
-            STROKE_WIDTH
+            stroke_width.unwrap_or(DEFAULT_STROKE_WIDTH)
         )?;
 
         for path in self.paths.iter() {

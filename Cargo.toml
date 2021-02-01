@@ -1,9 +1,9 @@
 [package]
-name = "turtle-graphics"
-version = "0.1.2-wide"
-authors = ["Michael Neumann <mneumann@ntecs.de>"]
-edition = "2018"
-license = "MIT"
-repository = "https://github.com/mneumann/turtle-graphics-rs"
+authors = ["Michael Neumann <mneumann@ntecs.de>, terkwood <38859656+Terkwood@users.noreply.github.com>"]
 description = "Turtle Graphics for Rust"
+edition = "2018"
 keywords = ["graphics"]
+license = "MIT"
+name = "turtle-graphics"
+repository = "https://github.com/mneumann/turtle-graphics-rs"
+version = "0.2.0"
